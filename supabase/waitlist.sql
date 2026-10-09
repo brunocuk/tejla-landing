@@ -17,5 +17,10 @@ create table if not exists public.waitlist_signups (
 
 alter table public.waitlist_signups enable row level security;
 
+-- Backend (service role) treba eksplicitne grantove; anon i authenticated
+-- ih namjerno NEMAJU, pa ni pogrešno dodana RLS policyja ne bi otvorila
+-- tablicu prema browseru.
+grant select, insert, delete on public.waitlist_signups to service_role;
+
 comment on table public.waitlist_signups is
     'Prijave na listu čekanja s landinga (tejla.app). Pristup samo service role ključem.';
