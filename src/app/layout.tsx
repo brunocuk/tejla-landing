@@ -30,6 +30,11 @@ export const metadata: Metadata = {
     locale: 'hr_HR',
     url: tejlaConfig.url,
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Tejla pamti. Ti živiš.',
+    description: 'Ne moraš sve držati u glavi. Tejla misli na ono što ti ne moraš.',
+  },
 };
 
 export const viewport: Viewport = {
