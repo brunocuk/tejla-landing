@@ -1,9 +1,15 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  turbopack: { root: __dirname },
+  async redirects() {
+    /* Stariji / engleski oblici → 301 na hrvatske, da linkovi ne pucaju. */
+    return [
+      { source: '/privacy', destination: '/privatnost', permanent: true },
+      { source: '/terms', destination: '/uvjeti', permanent: true },
+      { source: '/contact', destination: '/kontakt', permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

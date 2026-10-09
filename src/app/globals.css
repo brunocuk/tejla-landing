@@ -1,49 +1,435 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Port stilova iz landing.blade.php (landing) + pravno/layout.blade.php
+ * (.doc stranice) + unsubscribed.blade.php (.bye). Fontovi dolaze iz
+ * next/font varijabli postavljenih u layout.tsx.
+ */
+
+:root{
+    --ink:#1F1F23;
+    --plum:#8D6B78;
+    --cream:#F6F1EC;
+    --sand:#E7E1D8;
+    --sage:#BCC4B1;
+    --muted:#6C6C74;
+    --serif:var(--font-lora), Georgia, 'Times New Roman', serif;
+    --sans:var(--font-inter), system-ui, -apple-system, sans-serif;
+    --pad: clamp(22px, 6vw, 64px);
+    --maxw: 1080px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth; -webkit-text-size-adjust:100%}
+body{
+    margin:0; background:var(--cream); color:var(--ink);
+    font-family:var(--sans); font-size:clamp(16px,1.6vw,18px); line-height:1.6;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+::selection{background:var(--plum); color:#fff}
+
+/* ---------- nav ---------- */
+.nav{
+    position:fixed; inset:0 0 auto 0; z-index:40;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px var(--pad);
+    background:color-mix(in srgb, var(--cream) 82%, transparent);
+    backdrop-filter:blur(14px) saturate(1.2);
+    border-bottom:1px solid transparent;
+    transition:border-color .4s ease, background .4s ease;
+}
+.nav.is-stuck{border-bottom-color:var(--sand)}
+.nav.on-dark{
+    background:color-mix(in srgb, var(--ink) 80%, transparent);
+    border-bottom-color:rgba(255,255,255,.08);
+}
+.nav.on-dark .logo, .nav.on-dark .btn--ghost{color:var(--cream); border-color:rgba(246,241,236,.45)}
+
+.logo{
+    font-family:var(--serif); font-weight:600; font-size:clamp(26px,3.4vw,32px);
+    letter-spacing:-.5px; color:var(--ink); text-decoration:none; line-height:1;
+    transition:color .4s ease;
+}
+.logo span{color:var(--plum)}
+
+/* ---------- buttons ---------- */
+.btn{
+    font-family:var(--sans); font-weight:600; font-size:15px; letter-spacing:.1px;
+    border-radius:999px; cursor:pointer; border:1px solid transparent;
+    transition:transform .25s cubic-bezier(.2,.8,.3,1), background .25s, color .25s, box-shadow .25s;
+}
+.btn:active{transform:scale(.97)}
+.btn--ghost{
+    background:transparent; color:var(--ink); border-color:var(--ink);
+    padding:11px 22px;
+}
+.btn--ghost:hover{background:var(--ink); color:var(--cream)}
+.btn--solid{
+    background:var(--ink); color:var(--cream); padding:17px 42px; font-size:16px;
+    box-shadow:0 10px 30px -14px rgba(31,31,35,.6);
+    text-decoration:none; display:inline-block;
+}
+.btn--solid:hover{background:var(--plum); box-shadow:0 14px 34px -12px rgba(141,107,120,.7)}
+
+/* ---------- sections ---------- */
+.sec{
+    position:relative;
+    padding:clamp(84px,15vh,150px) var(--pad);
+    max-width:100%;
+}
+.sec > *{max-width:var(--maxw); margin-inline:auto}
+.sec--cream{background:var(--cream)}
+.sec--sand{background:var(--sand)}
+.sec--ink{background:var(--ink); color:var(--cream)}
+.sec--sage{background:var(--sage); color:#fbfcfa}
+
+.sec--ghost, .sec--signup, .sec--quote{text-align:center}
+
+.eyebrow{
+    font-size:clamp(12px,1.3vw,14px); font-weight:600;
+    letter-spacing:.22em; text-transform:uppercase; color:var(--plum);
+    margin:0 0 clamp(20px,4vw,34px);
+}
+.sec--sage .eyebrow{color:#fff; opacity:.85}
+
+/* ghost naslov — jedva vidljiv, kao misao koju ne moraš držati */
+.ghost{
+    font-family:var(--serif); font-weight:500;
+    font-size:clamp(40px,9vw,86px); line-height:1.06; letter-spacing:-.02em;
+    margin:0 0 clamp(28px,5vw,48px);
+    color:var(--ink); opacity:.09;
+    transition:opacity 1.6s cubic-bezier(.2,.8,.3,1);
+}
+.sec--ghost .ghost, .sec--signup .ghost{text-align:center}
+[data-reveal].is-in .ghost{opacity:.16}
+
+.title{
+    font-family:var(--serif); font-weight:600;
+    font-size:clamp(32px,6.4vw,60px); line-height:1.12; letter-spacing:-.015em;
+    margin:0 0 clamp(34px,6vw,56px); max-width:16ch;
 }
 
-html {
-  height: 100%;
+.lead{
+    font-size:clamp(17px,2.1vw,24px); line-height:1.62; color:#43434a;
+    max-width:34ch; margin-inline:auto; margin-block:0 clamp(30px,5vw,44px);
+}
+.sec--ghost .lead{max-width:32ch}
+.lead--tight{max-width:40ch; font-size:clamp(16px,1.9vw,19px)}
+
+.note{
+    font-size:14px; color:#8A8A90; margin:18px 0 0;
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+.cta-wrap{margin-top:6px}
+
+/* ---------- stream (tamna sekcija) ---------- */
+.stream{display:flex; flex-direction:column; gap:14px; max-width:640px; margin-inline:auto 0}
+.chip{
+    border:1px solid rgba(246,241,236,.22); border-radius:18px;
+    padding:22px 24px; font-size:clamp(16px,2vw,19px); line-height:1.5;
+    color:#ECE6E0; background:rgba(246,241,236,.02);
+}
+.resolve{
+    margin-top:26px; margin-left:auto; width:min(88%, 520px);
+    background:var(--plum); border-radius:20px; padding:24px 28px;
+    box-shadow:0 22px 44px -24px rgba(0,0,0,.7);
+}
+.resolve strong{display:block; font-size:clamp(18px,2.2vw,22px); font-weight:600; color:#fff}
+.resolve span{display:block; margin-top:4px; color:rgba(255,255,255,.72)}
+
+/* ---------- video ---------- */
+.title--center{margin-inline:auto; text-align:center; max-width:18ch}
+
+.video{
+    position:relative; margin-inline:auto;
+    width:min(320px, 74vw); aspect-ratio:var(--ratio, 576/1024);
+    border-radius:28px; overflow:hidden;
+    background:var(--ink);
+    box-shadow:0 34px 70px -34px rgba(31,31,35,.55);
+    border:1px solid rgba(31,31,35,.08);
+}
+.video__el{
+    position:absolute; inset:0;
+    width:100%; height:100%; object-fit:cover; display:block;
+}
+.video__toggle{
+    position:absolute; right:12px; bottom:12px; z-index:2;
+    width:38px; height:38px; border-radius:999px; cursor:pointer;
+    border:0; padding:0; display:grid; place-items:center;
+    background:rgba(31,31,35,.55); backdrop-filter:blur(6px);
+    opacity:0; transition:opacity .3s ease, background .25s ease;
+}
+.video:hover .video__toggle,
+.video__toggle:focus-visible{opacity:1}
+.video__toggle:hover{background:rgba(31,31,35,.8)}
+/* pauza */
+.video__toggle-ico{
+    width:11px; height:13px;
+    border-left:3.5px solid #fff; border-right:3.5px solid #fff;
+}
+/* play */
+.video__toggle.is-paused .video__toggle-ico{
+    width:0; height:0; border:0;
+    border-left:12px solid #fff;
+    border-top:7.5px solid transparent; border-bottom:7.5px solid transparent;
+    margin-left:3px;
+}
+@media (hover:none){ .video__toggle{opacity:1} }
+
+/* ---------- grid 2x2 ---------- */
+.grid{
+    display:grid; grid-template-columns:repeat(2,1fr);
+    gap:clamp(26px,5vw,56px) clamp(24px,5vw,64px);
+    margin-top:clamp(30px,6vw,60px);
+}
+.cell{border-top:1px solid var(--sand); padding-top:22px}
+.cell h3{
+    font-family:var(--serif); font-weight:500; font-size:clamp(26px,4.4vw,40px);
+    margin:0 0 10px; letter-spacing:-.01em;
+}
+.cell p{margin:0; color:var(--muted); font-size:clamp(15px,1.7vw,17px)}
+
+/* ---------- quote ---------- */
+.quote{
+    font-family:var(--sans); font-weight:600;
+    font-size:clamp(30px,6.2vw,58px); line-height:1.14; letter-spacing:-.02em;
+    margin:0 auto; max-width:15ch; color:#fbfcfa;
+}
+.quote em{
+    display:block; margin-top:.28em; font-family:var(--serif);
+    font-weight:500; font-style:italic; letter-spacing:0;
+    color:rgba(255,255,255,.9);
 }
 
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ---------- values ---------- */
+.values{list-style:none; margin:0; padding:0; display:grid; gap:6px; max-width:560px}
+.values li{
+    display:flex; align-items:center; gap:18px;
+    padding:18px 0; border-bottom:1px solid rgba(31,31,35,.1);
+    font-size:clamp(16px,1.9vw,19px);
+}
+.values li:last-child{border-bottom:0}
+.values__ico{
+    flex:0 0 auto; display:grid; place-items:center;
+    width:44px; height:44px; border-radius:999px;
+    border:1px solid rgba(31,31,35,.18); color:var(--plum);
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+/* ---------- app mark ---------- */
+.mark{
+    display:inline-flex; align-items:flex-start; justify-content:center;
+    margin:0 auto clamp(18px,3vw,26px); line-height:1;
+}
+.mark__t{font-family:var(--serif); font-weight:500; font-size:clamp(52px,9vw,76px); color:var(--ink)}
+.mark__d{
+    width:.22em; height:.22em; border-radius:999px; background:var(--plum);
+    font-size:clamp(52px,9vw,76px); margin-top:.3em; margin-left:.08em;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* ---------- beskonačni rep ---------- */
+.sec--tail-intro{padding-bottom:clamp(30px,5vw,50px); text-align:center}
+.tail-title{
+    font-family:var(--serif); font-weight:600; font-size:clamp(28px,5.2vw,46px);
+    margin:0 0 18px; letter-spacing:-.015em;
+}
+.sec--tail{
+    background:var(--cream);
+    padding-block:clamp(10px,2vw,18px);
+    display:grid; gap:12px;
+}
+.sec--tail > *{max-width:620px}
+.frag{
+    display:grid; grid-template-columns:1fr auto; align-items:center;
+    gap:6px 16px;
+    background:#FFFDFA; border:1px solid var(--sand); border-radius:16px;
+    padding:18px 20px;
+}
+.frag time{
+    grid-column:1/-1; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--plum); font-weight:600;
+}
+.frag p{margin:0; font-size:clamp(15px,1.8vw,17px); line-height:1.5}
+.frag__ok{
+    font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+    color:#9a9aa2; white-space:nowrap;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* ---------- reveal animacija ---------- */
+[data-r]{
+    opacity:0; transform:translateY(22px);
+    transition:opacity .9s cubic-bezier(.2,.8,.3,1) var(--d,0ms),
+               transform .9s cubic-bezier(.2,.8,.3,1) var(--d,0ms);
 }
+.is-in [data-r]{opacity:1; transform:none}
+
+/* ---------- loader / sentinel ---------- */
+#sentinel{height:1px}
+.loader{
+    display:grid; place-items:center; gap:14px;
+    padding:46px var(--pad) 70px; background:var(--cream);
+}
+.loader__dots{display:flex; gap:7px}
+.loader__dots i{
+    width:7px; height:7px; border-radius:999px; background:var(--plum);
+    opacity:.35; animation:pulse 1.25s infinite ease-in-out;
+}
+.loader__dots i:nth-child(2){animation-delay:.16s}
+.loader__dots i:nth-child(3){animation-delay:.32s}
+@keyframes pulse{0%,100%{opacity:.25; transform:translateY(0)}50%{opacity:1; transform:translateY(-4px)}}
+.loader__txt{font-size:13px; color:#9a9aa2; letter-spacing:.04em}
+.loader[hidden]{display:none}
+
+/* ---------- sticky CTA ---------- */
+.dock{
+    position:fixed; left:50%; bottom:max(18px, env(safe-area-inset-bottom)); z-index:45;
+    transform:translate(-50%, 130%);
+    display:flex; align-items:center; gap:14px;
+    background:var(--ink); color:var(--cream);
+    padding:10px 12px 10px 22px; border-radius:999px;
+    box-shadow:0 20px 44px -18px rgba(31,31,35,.75);
+    transition:transform .5s cubic-bezier(.2,.8,.3,1);
+    max-width:calc(100vw - 32px);
+}
+.dock.is-on{transform:translate(-50%,0)}
+.dock p{margin:0; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.dock button{
+    background:var(--cream); color:var(--ink); border:0; border-radius:999px;
+    padding:11px 20px; font-family:var(--sans); font-weight:600; font-size:14px; cursor:pointer;
+    transition:background .25s, color .25s;
+}
+.dock button:hover{background:var(--plum); color:#fff}
+
+/* ---------- dialog ---------- */
+dialog.sheet{
+    border:0; padding:0; background:transparent; max-width:min(460px, calc(100vw - 32px));
+    width:100%; margin:auto;
+}
+dialog.sheet::backdrop{background:rgba(31,31,35,.5); backdrop-filter:blur(4px)}
+.sheet__inner{
+    background:#FFFDFA; border:1px solid var(--sand); border-radius:26px;
+    padding:clamp(28px,5vw,40px);
+    box-shadow:0 40px 80px -40px rgba(31,31,35,.6);
+    animation:rise .45s cubic-bezier(.2,.8,.3,1);
+}
+@keyframes rise{from{opacity:0; transform:translateY(18px) scale(.98)}}
+.sheet h2{
+    font-family:var(--serif); font-weight:600; font-size:clamp(24px,4vw,30px);
+    margin:0 0 8px; letter-spacing:-.01em;
+}
+.sheet p.sub{margin:0 0 26px; color:var(--muted); font-size:15px}
+.field{display:grid; gap:7px; margin-bottom:16px}
+.field label{font-size:13px; font-weight:600; letter-spacing:.04em; color:#55555c}
+.field input{
+    font-family:var(--sans); font-size:16px; padding:14px 16px;
+    border:1px solid var(--sand); border-radius:14px; background:var(--cream); color:var(--ink);
+    transition:border-color .2s, box-shadow .2s;
+}
+.field input:focus{
+    outline:0; border-color:var(--plum);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--plum) 18%, transparent);
+}
+.hp{position:absolute; left:-9999px; width:1px; height:1px; opacity:0}
+.sheet .btn--solid{width:100%; padding:16px}
+.sheet__msg{margin:16px 0 0; font-size:14px; min-height:20px; text-align:center}
+.sheet__msg.ok{color:#3f7a52}
+.sheet__msg.err{color:#a5443f}
+.sheet__close{
+    position:absolute; top:14px; right:16px; background:none; border:0; cursor:pointer;
+    font-size:22px; line-height:1; color:#9a9aa2; padding:6px;
+}
+.sheet__inner{position:relative}
+.privacy{margin:18px 0 0; font-size:12.5px; color:#9a9aa2; text-align:center}
+
+footer.foot{
+    background:var(--cream); border-top:1px solid var(--sand);
+    padding:40px var(--pad) 110px; text-align:center;
+}
+footer.foot p{margin:0; font-size:13px; color:#9a9aa2}
+footer.foot .sig{font-family:var(--serif); font-size:20px; color:var(--ink); margin-bottom:16px}
+footer.foot .sig span{color:var(--plum)}
+.foot__links{
+    display:flex; flex-wrap:wrap; justify-content:center; gap:8px 26px;
+    margin:0 0 18px; padding:0; list-style:none;
+}
+.foot__links a{
+    font-size:14px; color:var(--muted); text-decoration:none;
+    border-bottom:1px solid transparent; padding-bottom:2px;
+    transition:color .2s, border-color .2s;
+}
+.foot__links a:hover{color:var(--plum); border-bottom-color:var(--plum)}
+
+@media (max-width:640px){
+    .grid{grid-template-columns:1fr}
+    .stream{margin-inline:0}
+    .resolve{width:100%}
+    .dock p{display:none}
+    .dock{padding:8px}
+}
+@media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    [data-r]{opacity:1 !important; transform:none !important; transition:none}
+    .loader__dots i{animation:none}
+}
+
+/* =====================================================================
+   Pravne stranice (.doc) — port pravno/layout.blade.php
+   ===================================================================== */
+.top{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px var(--pad); border-bottom:1px solid var(--sand);
+}
+.top .logo{font-size:28px}
+.top a.back{font-size:14px; color:var(--muted); text-decoration:none}
+.top a.back:hover{color:var(--plum)}
+
+main.doc{
+    max-width:720px; margin-inline:auto;
+    padding:clamp(46px,8vw,84px) var(--pad) clamp(60px,10vw,110px);
+    font-size:17px; line-height:1.68;
+}
+.doc .kicker{
+    font-size:12.5px; font-weight:600; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--plum); margin:0 0 14px;
+}
+.doc h1{
+    font-family:var(--serif); font-weight:600;
+    font-size:clamp(32px,6vw,50px); line-height:1.12; letter-spacing:-.018em;
+    margin:0 0 10px;
+}
+.doc .updated{font-size:14px; color:#9a9aa2; margin:0 0 clamp(30px,5vw,44px)}
+.doc h2{
+    font-family:var(--serif); font-weight:600; font-size:clamp(21px,3vw,26px);
+    margin:clamp(34px,5vw,48px) 0 12px; letter-spacing:-.01em;
+}
+.doc p{margin:0 0 16px; color:#3A3A40}
+.doc a{color:var(--plum)}
+.doc ul{padding-left:20px; margin:0 0 16px; color:#3A3A40}
+.doc li{margin-bottom:6px}
+
+.placeholder{
+    border:1px dashed var(--sand); border-radius:18px;
+    background:#FFFDFA; padding:clamp(24px,4vw,32px);
+    margin:0 0 28px;
+}
+.placeholder p:last-child{margin-bottom:0}
+.placeholder .tag{
+    display:inline-block; font-size:11.5px; font-weight:600;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--plum);
+    border:1px solid var(--sand); border-radius:999px;
+    padding:5px 12px; margin-bottom:14px;
+}
+
+footer.foot--doc{padding:32px var(--pad) 48px}
+footer.foot--doc .foot__links{margin:0 0 16px}
+
+/* =====================================================================
+   Odjava (.bye) — port unsubscribed.blade.php
+   ===================================================================== */
+.bye{
+    min-height:100vh; display:grid; place-items:center;
+    text-align:center; padding:24px;
+}
+.bye h1{
+    font-family:var(--serif); font-weight:600;
+    font-size:clamp(28px,6vw,40px); margin:0 0 12px;
+}
+.bye p{color:var(--muted); max-width:38ch; line-height:1.6; margin:0 auto}
+.bye a{color:var(--plum)}
