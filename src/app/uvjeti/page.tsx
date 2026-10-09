@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: 'Uvjeti korištenja · Tejla',
   description: 'Uvjeti pod kojima koristiš Tejlu.',
   robots: { index: false, follow: true },
+  alternates: { canonical: '/uvjeti' },
 };
 
 export default function Uvjeti() {

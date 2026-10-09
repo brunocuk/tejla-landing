@@ -13,7 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Section from './Section';
 import FragmentsTail from './FragmentsTail';
-import { PER_PAGE, sections, sectionPages } from '@/lib/content';
+import { sections, sectionPages } from '@/lib/content';
 import type { CtaMode } from '@/lib/config';
 
 /* Zaštita: ne učitavamo beskonačno bez interakcije korisnika. */
@@ -25,8 +25,11 @@ interface Props {
 }
 
 export default function LandingClient({ ctaMode, appUrl }: Props) {
-  /* Prva stranica sekcija je odmah tu (SSR, SEO + brzi first paint). */
-  const [sectionPagesLoaded, setSectionPagesLoaded] = useState(1);
+  /*
+   * SVE prave sekcije se renderiraju server-side (SEO: kompletan tekst u
+   * HTML-u). Reveal animacije ih svejedno otkrivaju tek na scroll, pa je
+   * doživljaj identičan originalu; infinite scroll ostaje za rep fragmenata.
+   */
   const [tailPages, setTailPages] = useState(0);
   const [loaderText, setLoaderText] = useState('Tejla pamti dalje…');
 
@@ -38,8 +41,8 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
   const emailRef = useRef<HTMLInputElement>(null);
   const websiteRef = useRef<HTMLInputElement>(null);
 
-  const loadedPagesRef = useRef(0);
-  const sectionPagesRef = useRef(1);
+  /* Prave sekcije se broje kao već učitane stranice (ekvivalent originala). */
+  const loadedPagesRef = useRef(sectionPages - 1);
   const tailPagesRef = useRef(0);
   const observersRef = useRef<{
     reveal: IntersectionObserver;
@@ -58,13 +61,8 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
       return;
     }
     loadedPagesRef.current++;
-    if (sectionPagesRef.current < sectionPages) {
-      sectionPagesRef.current++;
-      setSectionPagesLoaded(sectionPagesRef.current);
-    } else {
-      tailPagesRef.current++;
-      setTailPages(tailPagesRef.current);
-    }
+    tailPagesRef.current++;
+    setTailPages(tailPagesRef.current);
   }, []);
 
   /* ---------- observeri (jednom) ---------- */
@@ -198,7 +196,7 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
       if (r && r.top < window.innerHeight + 900) loadMore();
     }, 220);
     return () => clearTimeout(t);
-  }, [sectionPagesLoaded, tailPages, loadMore]);
+  }, [tailPages, loadMore]);
 
   /* ---------- dialog ---------- */
   const openSheet = () => {
@@ -278,8 +276,6 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
   };
 
   /* ---------- render ---------- */
-  const visibleSections = sections.slice(0, sectionPagesLoaded * PER_PAGE);
-
   return (
     <>
       <nav className="nav" ref={navRef}>
@@ -298,7 +294,7 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
       </nav>
 
       <main id="stream" ref={streamRef}>
-        {visibleSections.map((s, i) => (
+        {sections.map((s, i) => (
           <Section key={i} section={s} index={i} ctaMode={ctaMode} appUrl={appUrl} />
         ))}
         {Array.from({ length: tailPages }, (_, i) => (

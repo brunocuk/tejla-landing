@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: 'Pravila privatnosti · Tejla',
   description: 'Kako Tejla prikuplja, obrađuje i štiti tvoje podatke.',
   robots: { index: false, follow: true },
+  alternates: { canonical: '/privatnost' },
 };
 
 export default function Privatnost() {

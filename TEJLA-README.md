@@ -30,10 +30,11 @@ supabase/waitlist.sql       DDL za tablicu waitlist_signups
 
 ## Razlike prema Laravel originalu
 
-- Sekcije se ne dohvaćaju fetchom sa servera: renderiraju se iz lokalnog
-  sadržaja, istom paginacijom (1 sekcija po stranici, 4 fragmenta po stranici
-  repa, ciklički, MAX_AUTO_PAGES=40). Ponašanje za korisnika je identično,
-  a stream radi i bez ijednog server poziva.
+- SVE prave sekcije se renderiraju server-side (SEO: kompletan tekst stranice
+  je u HTML-u), a reveal animacije ih otkrivaju tek na scroll pa je doživljaj
+  identičan originalu. Infinite scroll ostaje za beskonačni rep fragmenata
+  (4 po stranici, ciklički, MAX_AUTO_PAGES=40), koji je klijentski i ne ulazi
+  u indeks.
 - Prijave idu u Supabase (tablica `waitlist_signups`, RLS bez policyja,
   pristup samo service role ključem) umjesto u SQLite.
 - Mailovi se šalju nodemailerom kroz isti GoDaddy SMTP; ako MAIL_* varijable
@@ -41,6 +42,15 @@ supabase/waitlist.sql       DDL za tablicu waitlist_signups
 - Throttle za /prijava je in-memory po serverless instanci (mekši od
   Laravelovog), uz honeypot i dedup dovoljan za waitlist formu.
 - /privacy, /terms, /contact su 308 redirecti (Next permanentRedirect).
+
+## SEO
+
+- Kompletan sadržaj u HTML-u (v. gore) + noscript fallback za reveal stilove
+- `robots.ts` (disallow /odjava/ i /prijava) i `sitemap.ts` (/, /kontakt;
+  pravne stranice dodati kad prestanu biti noindex placeholderi)
+- Canonical na svakoj stranici, OG + Twitter slika 1200x630
+  (`src/app/opengraph-image.png`), JSON-LD Organization + WebSite
+- Ikone: `icon0.svg` (Matejin favicon) + `icon1.png` + `apple-icon.png`
 
 ## Lokalno pokretanje
 

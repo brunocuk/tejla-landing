@@ -5,6 +5,7 @@ import { tejlaConfig } from '@/lib/config';
 export const metadata: Metadata = {
   title: 'Kontakt · Tejla',
   description: 'Javi nam se — Tejla tim.',
+  alternates: { canonical: '/kontakt' },
 };
 
 export default function Kontakt() {
