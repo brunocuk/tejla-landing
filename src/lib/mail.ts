@@ -2,13 +2,16 @@ import nodemailer from 'nodemailer';
 import { tejlaConfig } from './config';
 
 /*
- * Slanje mailova kroz GoDaddy SMTP, ekvivalent Laravel mailera.
- * Ako MAIL_* varijable nisu postavljene, slanje se preskače: prijava
- * je ionako već spremljena, mail je sekundaran.
+ * Slanje mailova: Resend (RESEND_API_KEY) ima prednost, inače GoDaddy SMTP
+ * (MAIL_* varijable). Ako nijedno nije postavljeno, slanje se preskače:
+ * prijava je ionako već spremljena, mail je sekundaran.
  */
 
 export function mailConfigured(): boolean {
-  return Boolean(process.env.MAIL_HOST && process.env.MAIL_USERNAME && process.env.MAIL_PASSWORD);
+  return Boolean(
+    process.env.RESEND_API_KEY ||
+      (process.env.MAIL_HOST && process.env.MAIL_USERNAME && process.env.MAIL_PASSWORD)
+  );
 }
 
 function transport() {
@@ -25,9 +28,49 @@ function transport() {
 }
 
 function from() {
-  const address = process.env.MAIL_FROM_ADDRESS ?? process.env.MAIL_USERNAME!;
+  const address = process.env.MAIL_FROM_ADDRESS ?? process.env.MAIL_USERNAME ?? 'tejla@tejla.app';
   const name = process.env.MAIL_FROM_NAME ?? tejlaConfig.brand;
   return { address, name };
+}
+
+interface Mail {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+}
+
+async function deliver(mail: Mail): Promise<void> {
+  const sender = from();
+
+  if (process.env.RESEND_API_KEY) {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: `${sender.name} <${sender.address}>`,
+        to: [mail.to],
+        subject: mail.subject,
+        html: mail.html,
+        text: mail.text,
+      }),
+    });
+    if (!res.ok) {
+      throw new Error(`Resend ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    }
+    return;
+  }
+
+  await transport().sendMail({
+    from: sender,
+    to: mail.to,
+    subject: mail.subject,
+    html: mail.html,
+    text: mail.text,
+  });
 }
 
 export interface SignupRecord {
@@ -38,9 +81,33 @@ export interface SignupRecord {
   created_at: string;
 }
 
-/* Port emails/waitlist-confirmation.blade.php */
+/* Tekst potvrde: Matejina kopija, doslovno (13.10.2026.) */
+const CONFIRMATION_LINES = [
+  'Bok!',
+  'Tvoja prijava je stigla.',
+  'Zasad ne moraš ništa više napraviti.',
+  'Kad Tejla bude spremna za prve korisnike, javit ćemo ti se na ovu adresu.',
+  'A do tada… slobodno nastavi sa svojim danom.',
+];
+
+function confirmationText(unsubscribeUrl: string): string {
+  return [
+    ...CONFIRMATION_LINES,
+    '',
+    'Tejla pamti. Ti živiš.',
+    '',
+    'tejla.',
+    '',
+    `Ako se nisi ti prijavio/la, ukloni se s liste: ${unsubscribeUrl}`,
+  ].join('\n\n');
+}
+
 function confirmationHtml(unsubscribeUrl: string): string {
   const year = new Date().getFullYear();
+  const paragraphs = CONFIRMATION_LINES.map(
+    (line) =>
+      `<p style="margin:0 0 18px 0; font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.65; color:#3A3A40;">${line}</p>`
+  ).join('\n                        ');
   return `<!DOCTYPE html>
 <html lang="hr">
 <head>
@@ -60,25 +127,13 @@ function confirmationHtml(unsubscribeUrl: string): string {
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding:8px 40px 0 40px;" align="center">
-                        <p style="margin:0; font-family:Georgia,'Times New Roman',serif; font-size:19px; color:#8D6B78; letter-spacing:.2px;">
+                    <td style="padding:32px 40px 0 40px;">
+                        ${paragraphs}
+                        <p style="margin:0 0 18px 0; font-family:Georgia,'Times New Roman',serif; font-size:17px; line-height:1.65; color:#8D6B78;">
                             Tejla pamti. Ti živiš.
                         </p>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding:32px 40px 0 40px;">
-                        <p style="margin:0 0 18px 0; font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.65; color:#1F1F23;">
-                            Bok,
-                        </p>
-                        <p style="margin:0 0 18px 0; font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.65; color:#3A3A40;">
-                            Zapisali smo te. Sad si na listi za rani pristup.
-                        </p>
-                        <p style="margin:0 0 18px 0; font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.65; color:#3A3A40;">
-                            Tejla je još u zatvorenoj beti i pristup otvaramo postupno — u malim grupama, da svaka prijava dobije pravu pažnju. Javit ćemo ti se s ovog istog maila kad dođeš na red.
-                        </p>
-                        <p style="margin:0; font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.65; color:#3A3A40;">
-                            Do tada ne moraš ništa raditi. To je otprilike cijela ideja.
+                        <p style="margin:0; font-family:Georgia,'Times New Roman',serif; font-size:22px; line-height:1; color:#1F1F23;">
+                            tejla<span style="color:#8D6B78;">.</span>
                         </p>
                     </td>
                 </tr>
@@ -127,7 +182,7 @@ function notificationHtml(signup: SignupRecord, total: number): string {
         <tr><td style="color:#8A8A90;">E-mail</td><td><strong>${signup.email}</strong></td></tr>
         <tr><td style="color:#8A8A90;">Vrijeme</td><td>${created}</td></tr>
         <tr><td style="color:#8A8A90;">Izvor</td><td>${signup.referrer || 'izravno'}</td></tr>
-        <tr><td style="color:#8A8A90;">IP</td><td>${signup.ip || '—'}</td></tr>
+        <tr><td style="color:#8A8A90;">IP</td><td>${signup.ip || 'nepoznat'}</td></tr>
     </table>
     <p style="font-size:13px; color:#8A8A90;">Ukupno na listi: ${total}</p>
 </body>
@@ -136,20 +191,19 @@ function notificationHtml(signup: SignupRecord, total: number): string {
 
 export async function sendConfirmation(signup: SignupRecord): Promise<void> {
   const unsubscribeUrl = `${tejlaConfig.url}/odjava/${signup.token}`;
-  await transport().sendMail({
-    from: from(),
+  await deliver({
     to: signup.email,
-    subject: 'Na listi si. Tejla pamti.',
+    subject: 'Tvoja prijava je stigla. Tejla pamti.',
     html: confirmationHtml(unsubscribeUrl),
+    text: confirmationText(unsubscribeUrl),
   });
 }
 
 export async function sendNotification(signup: SignupRecord, total: number): Promise<void> {
   if (!tejlaConfig.adminEmail) return;
-  await transport().sendMail({
-    from: from(),
+  await deliver({
     to: tejlaConfig.adminEmail,
-    subject: `Nova prijava na Tejlu — ${signup.email}`,
+    subject: `Nova prijava na Tejlu: ${signup.email}`,
     html: notificationHtml(signup, total),
   });
 }

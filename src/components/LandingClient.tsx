@@ -360,7 +360,7 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
             &times;
           </button>
           <h2>Želiš među prvima?</h2>
-          <p className="sub">Ostavi mail i javit ćemo ti se kad otvorimo sljedeću grupu.</p>
+          <p className="sub">Ostavi mail i javit ćemo ti se kad Tejla bude spremna za prve korisnike.</p>
 
           <form onSubmit={onSubmit} noValidate>
             <div className="field">
@@ -393,7 +393,7 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
             <p className={`sheet__msg${msg.kind ? ` ${msg.kind}` : ''}`} role="status" aria-live="polite">
               {msg.text}
             </p>
-            <p className="privacy">Sve što podijeliš je privatno i sigurno. Bez spama.</p>
+            <p className="privacy">Tvoj e-mail koristimo za obavijesti o ranom pristupu Tejli. Bez spama.</p>
           </form>
         </div>
       </dialog>
