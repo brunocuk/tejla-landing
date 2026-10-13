@@ -113,8 +113,9 @@ export default function Privatnost() {
 
       <h2>5. Gdje se podaci obrađuju?</h2>
       <p>
-        Podaci se pohranjuju i obrađuju putem prethodno navedenih pružatelja usluga, na njihovim
-        poslužiteljima u Europskom gospodarskom prostoru i Sjedinjenim Američkim Državama.
+        Baza s prijavama (Supabase) nalazi se u Europskoj uniji, u regiji eu-west-1 (Irska). Web
+        stranicu poslužuje Vercel, a e-mail poruke šalje Resend; ti pružatelji podatke mogu
+        obrađivati i u Sjedinjenim Američkim Državama.
       </p>
       <p>
         Kada se podaci prenose izvan Europskog gospodarskog prostora, primjenjujemo odgovarajući
