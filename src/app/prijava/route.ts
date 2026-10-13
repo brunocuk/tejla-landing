@@ -4,6 +4,7 @@ import { resolveMx } from 'node:dns/promises';
 import { supabaseAdmin } from '@/lib/supabase';
 import { throttled } from '@/lib/throttle';
 import { mailConfigured, sendConfirmation, sendNotification, type SignupRecord } from '@/lib/mail';
+import { CONSENT_VERSION, CONSENT_METHOD } from '@/lib/consent';
 
 /* Port WaitlistController@store. */
 
@@ -27,7 +28,7 @@ async function domainAcceptsMail(email: string): Promise<boolean> {
 }
 
 export async function POST(request: NextRequest) {
-  let payload: { email?: string; website?: string };
+  let payload: { email?: string; website?: string; consent?: boolean };
   try {
     payload = await request.json();
   } catch {
@@ -54,6 +55,14 @@ export async function POST(request: NextRequest) {
   }
   if (email.length > 180 || !EMAIL_RE.test(email) || !(await domainAcceptsMail(email))) {
     return NextResponse.json({ message: 'Ta adresa ne izgleda ispravno.' }, { status: 422 });
+  }
+
+  /* Privola je uvjet prijave: bez potvrđenog checkboxa nema zapisa (AZOP). */
+  if (payload.consent !== true) {
+    return NextResponse.json(
+      { message: 'Za prijavu potvrdi da želiš primati obavijesti.' },
+      { status: 422 }
+    );
   }
 
   const db = supabaseAdmin();
@@ -88,6 +97,10 @@ export async function POST(request: NextRequest) {
   const { error: insertError } = await db.from('waitlist_signups').insert({
     ...signup,
     user_agent: (request.headers.get('user-agent') ?? '').slice(0, 255) || null,
+    /* Dokaz privole: koja verzija teksta, kada i kako je dana. */
+    consent_version: CONSENT_VERSION,
+    consent_given_at: signup.created_at,
+    consent_method: CONSENT_METHOD,
   });
 
   if (insertError) {

@@ -1,7 +1,5 @@
 /* Port pravno/layout.blade.php — ljuska pravnih stranica. */
 
-import { tejlaConfig } from '@/lib/config';
-
 export default function PravnoLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
@@ -22,16 +20,14 @@ export default function PravnoLayout({ children }: { children: React.ReactNode }
             <a href="/privatnost">Pravila privatnosti</a>
           </li>
           <li>
-            <a href="/uvjeti">Uvjeti korištenja</a>
-          </li>
-          <li>
             <a href="/kontakt">Kontakt</a>
           </li>
-          <li>
-            <a href={tejlaConfig.appUrl}>Otvori Tejlu</a>
-          </li>
         </ul>
-        <p>Tejla pamti. Ti živiš. &nbsp;·&nbsp; &copy; {new Date().getFullYear()}</p>
+        <p className="foot__legal">
+          HAJDI, obrt za usluge &nbsp;·&nbsp; Zeleni vijenac 30, 10360 Sesvete &nbsp;·&nbsp; OIB:
+          89980085111 &nbsp;·&nbsp; <a href="mailto:tejla@tejla.app">tejla@tejla.app</a>
+        </p>
+        <p>&copy; {new Date().getFullYear()}. HAJDI, obrt za usluge.</p>
       </footer>
     </>
   );

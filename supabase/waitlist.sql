@@ -6,13 +6,18 @@
 -- mogu ni čitati ni pisati.
 
 create table if not exists public.waitlist_signups (
-    id         uuid primary key default gen_random_uuid(),
-    email      text not null unique,
-    token      text not null unique,
-    ip         text,
-    user_agent text,
-    referrer   text,
-    created_at timestamptz not null default now()
+    id               uuid primary key default gen_random_uuid(),
+    email            text not null unique,
+    token            text not null unique,
+    ip               text,
+    user_agent       text,
+    referrer         text,
+    created_at       timestamptz not null default now(),
+    -- Dokaz privole (AZOP): verzija teksta iz src/lib/consent.ts, vrijeme i
+    -- način davanja. Nullable zbog prijava nastalih prije uvođenja checkboxa.
+    consent_version  text,
+    consent_given_at timestamptz,
+    consent_method   text
 );
 
 alter table public.waitlist_signups enable row level security;

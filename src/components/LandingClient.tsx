@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Section from './Section';
 import FragmentsTail from './FragmentsTail';
 import { sections, sectionPages } from '@/lib/content';
+import { CONSENT_TEXT } from '@/lib/consent';
 import type { CtaMode } from '@/lib/config';
 
 /* Zaštita: ne učitavamo beskonačno bez interakcije korisnika. */
@@ -40,6 +41,7 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
   const sheetRef = useRef<HTMLDialogElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const websiteRef = useRef<HTMLInputElement>(null);
+  const consentRef = useRef<HTMLInputElement>(null);
 
   /* Prave sekcije se broje kao već učitane stranice (ekvivalent originala). */
   const loadedPagesRef = useRef(sectionPages - 1);
@@ -52,7 +54,7 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
 
   const [msg, setMsg] = useState<{ kind: '' | 'ok' | 'err'; text: string }>({ kind: '', text: '' });
   const [submitting, setSubmitting] = useState(false);
-  const [submitLabel, setSubmitLabel] = useState('Prijavi se za rani pristup');
+  const [submitLabel, setSubmitLabel] = useState('Prijavi me');
 
   /* ---------- infinite scroll ---------- */
   const loadMore = useCallback(() => {
@@ -228,7 +230,7 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
   /* ---------- slanje prijave ---------- */
   const resetBtn = () => {
     setSubmitting(false);
-    setSubmitLabel('Prijavi se za rani pristup');
+    setSubmitLabel('Prijavi me');
   };
 
   const onSubmit = (e: React.FormEvent) => {
@@ -241,6 +243,13 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
       return;
     }
 
+    /* Privola je uvjet prijave; checkbox je po defaultu neoznačen (AZOP). */
+    if (!consentRef.current!.checked) {
+      setMsg({ kind: 'err', text: 'Za prijavu potvrdi da želiš primati obavijesti.' });
+      consentRef.current!.focus();
+      return;
+    }
+
     setSubmitting(true);
     setSubmitLabel('Šaljem…');
     setMsg({ kind: '', text: '' });
@@ -248,13 +257,15 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
     fetch('/prijava', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ email, website: websiteRef.current!.value }),
+      body: JSON.stringify({ email, website: websiteRef.current!.value, consent: true }),
     })
       .then((r) => r.json().then((body) => ({ ok: r.ok, status: r.status, body })))
       .then((res) => {
         if (res.ok) {
           setMsg({ kind: 'ok', text: res.body.message || 'Gotovo. Na listi si.' });
           emailRef.current!.value = '';
+          /* Sljedeće otvaranje dialoga mora opet krenuti od neoznačene privole. */
+          consentRef.current!.checked = false;
           setSubmitLabel('Zapamćeno.');
           setTimeout(() => {
             sheetRef.current?.close();
@@ -317,23 +328,22 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
         <p className="sig">
           tejla<span>.</span>
         </p>
+        <p className="foot__tagline">Tejla pamti. Ti živiš.</p>
 
         <ul className="foot__links">
           <li>
             <a href="/privatnost">Pravila privatnosti</a>
           </li>
           <li>
-            <a href="/uvjeti">Uvjeti korištenja</a>
-          </li>
-          <li>
             <a href="/kontakt">Kontakt</a>
-          </li>
-          <li>
-            <a href={appUrl}>Otvori Tejlu</a>
           </li>
         </ul>
 
-        <p>Tejla pamti. Ti živiš. &nbsp;·&nbsp; &copy; {new Date().getFullYear()}</p>
+        <p className="foot__legal">
+          HAJDI, obrt za usluge &nbsp;·&nbsp; Zeleni vijenac 30, 10360 Sesvete &nbsp;·&nbsp; OIB:
+          89980085111 &nbsp;·&nbsp; <a href="mailto:tejla@tejla.app">tejla@tejla.app</a>
+        </p>
+        <p>&copy; {new Date().getFullYear()}. HAJDI, obrt za usluge.</p>
       </footer>
 
       <div className="dock" ref={dockRef}>
@@ -359,8 +369,8 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
           <button type="button" className="sheet__close" data-close-form aria-label="Zatvori">
             &times;
           </button>
-          <h2>Želiš među prvima?</h2>
-          <p className="sub">Ostavi mail i javit ćemo ti se kad Tejla bude spremna za prve korisnike.</p>
+          <h2>Saznaj kada Tejla kreće.</h2>
+          <p className="sub">Ostavi svoj e-mail i javit ćemo ti kada Tejla bude spremna za prve korisnike.</p>
 
           <form onSubmit={onSubmit} noValidate>
             <div className="field">
@@ -376,6 +386,12 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
                 placeholder="ti@primjer.hr"
               />
             </div>
+
+            {/* Privola: defaultChecked namjerno NEMA, prijava bez potvrde ne prolazi. */}
+            <label className="consent" htmlFor="consent">
+              <input ref={consentRef} type="checkbox" id="consent" name="consent" />
+              <span>{CONSENT_TEXT}</span>
+            </label>
 
             <input
               ref={websiteRef}
@@ -393,7 +409,10 @@ export default function LandingClient({ ctaMode, appUrl }: Props) {
             <p className={`sheet__msg${msg.kind ? ` ${msg.kind}` : ''}`} role="status" aria-live="polite">
               {msg.text}
             </p>
-            <p className="privacy">Tvoj e-mail koristimo za obavijesti o ranom pristupu Tejli. Bez spama.</p>
+            <p className="privacy">
+              Tvoje podatke obrađuje HAJDI, obrt za usluge. Više pročitaj u našim{' '}
+              <a href="/privatnost">Pravilima privatnosti</a>.
+            </p>
           </form>
         </div>
       </dialog>
