@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase';
+import { ADMIN_COOKIE } from '@/lib/adminAuth';
 import './admin.css';
 
 /*
  * Mini CRM za Mateju: pregled prijava na listu ranog pristupa.
- * Ruta je zaštićena Basic Authom u src/middleware.ts; bez env
- * varijabli TEJLA_ADMIN_USER/PASSWORD vraća 404.
+ * Rutu štiti src/proxy.ts (sesija kroz /admin/login); bez env
+ * varijable TEJLA_ADMIN_PASSWORD cijeli /admin vraća 404.
  */
 
 export const dynamic = 'force-dynamic';
@@ -45,6 +48,13 @@ function izvorPrikaz(referrer: string | null): string {
   } catch {
     return referrer.slice(0, 40);
   }
+}
+
+async function odjaviSe() {
+  'use server';
+  const store = await cookies();
+  store.delete(ADMIN_COOKIE);
+  redirect('/admin/login');
 }
 
 async function obrisiPrijavu(formData: FormData) {
@@ -105,7 +115,12 @@ export default async function AdminPage({
         <a href="/" className="logo">
           tejla<span>.</span>
         </a>
-        <span className="adm__tag">Prijave na rani pristup</span>
+        <div className="adm__topright">
+          <span className="adm__tag">Prijave na rani pristup</span>
+          <form action={odjaviSe}>
+            <button type="submit" className="adm__logout">Odjava</button>
+          </form>
+        </div>
       </header>
 
       <section className="adm__stats">
