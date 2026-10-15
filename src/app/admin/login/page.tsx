@@ -31,7 +31,11 @@ async function prijaviSe(formData: FormData) {
   if (throttled(ip, 5)) redirect('/admin/login?e=2');
 
   const unos = String(formData.get('lozinka') ?? '');
-  if (!(await provjeriLozinku(unos, lozinka))) redirect('/admin/login?e=1');
+  if (!(await provjeriLozinku(unos, lozinka))) {
+    /* Namjerna pauza: uz throttle dodatno usporava pogađanje lozinke. */
+    await new Promise((r) => setTimeout(r, 800));
+    redirect('/admin/login?e=1');
+  }
 
   const store = await cookies();
   store.set(ADMIN_COOKIE, await createSessionToken(lozinka), {
