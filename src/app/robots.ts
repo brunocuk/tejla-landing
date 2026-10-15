@@ -6,8 +6,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      /* Odjavni linkovi iz mailova i API ruta nemaju što raditi u indeksu. */
-      disallow: ['/odjava/', '/prijava'],
+      /* Odjavni linkovi iz mailova, API ruta i admin nemaju što raditi u indeksu. */
+      disallow: ['/odjava/', '/prijava', '/admin'],
     },
     sitemap: `${tejlaConfig.url}/sitemap.xml`,
   };
