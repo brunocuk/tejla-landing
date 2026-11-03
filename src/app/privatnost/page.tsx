@@ -12,13 +12,13 @@ import PravnoLayout from '@/components/PravnoLayout';
  *    projekta potvrditi u dashboardu pa po potrebi precizirati tekst
  *  - rokovi čuvanja: naši prijedlozi, potvrditi s Matejom prije objave
  *
- * noindex ostaje dok Bruno i Mateja ne potvrde finalnu verziju.
+ * Finalna verzija potvrđena (pravni paket zatvoren 29.10.2026.), stranica je
+ * indeksabilna od 3.11.2026.
  */
 
 export const metadata: Metadata = {
   title: 'Pravila privatnosti · Tejla',
   description: 'Kako Tejla prikuplja, obrađuje i štiti tvoje podatke.',
-  robots: { index: false, follow: true },
   alternates: { canonical: '/privatnost' },
 };
 
@@ -102,7 +102,7 @@ export default function Privatnost() {
       </p>
       <p>Za funkcioniranje stranice koristimo:</p>
       <ul>
-        <li>Supabase (Supabase, Inc.) – pohrana i upravljanje prijavama</li>
+        <li>Supabase (Supabase Pte. Ltd.) – pohrana i upravljanje prijavama</li>
         <li>Vercel (Vercel Inc.) – hosting i isporuka web stranice</li>
         <li>Resend (Plus Five Five, Inc.) – slanje e-mail poruka</li>
       </ul>
