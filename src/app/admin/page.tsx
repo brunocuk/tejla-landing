@@ -27,6 +27,7 @@ type Signup = {
   consent_version: string | null;
   consent_given_at: string | null;
   consent_method: string | null;
+  invited_at: string | null;
 };
 
 const datumFmt = new Intl.DateTimeFormat('hr-HR', {
@@ -95,7 +96,7 @@ export default async function AdminPage({
     (() => {
       let sel = db
         .from('waitlist_signups')
-        .select('id, email, created_at, referrer, consent_version, consent_given_at, consent_method')
+        .select('id, email, created_at, referrer, consent_version, consent_given_at, consent_method, invited_at')
         .order('created_at', { ascending: false })
         .limit(2000);
       if (upit) sel = sel.ilike('email', `%${upit.replace(/[%_]/g, '')}%`);
@@ -164,6 +165,7 @@ export default async function AdminPage({
               <th>E-mail</th>
               <th>Prijava</th>
               <th>Privola</th>
+              <th>Pozivnica</th>
               <th>Izvor</th>
               <th aria-label="Radnje"></th>
             </tr>
@@ -171,7 +173,7 @@ export default async function AdminPage({
           <tbody>
             {prijave.length === 0 ? (
               <tr>
-                <td colSpan={5} className="adm__empty">
+                <td colSpan={6} className="adm__empty">
                   {upit ? `Nema prijava za "${upit}".` : 'Još nema prijava. Stižu.'}
                 </td>
               </tr>
@@ -189,6 +191,15 @@ export default async function AdminPage({
                       <span className="adm__meh" title="Prijava nastala prije uvođenja checkboxa">
                         prije checkboxa
                       </span>
+                    )}
+                  </td>
+                  <td>
+                    {p.invited_at ? (
+                      <span className="adm__ok" title={datumFmt.format(new Date(p.invited_at))}>
+                        poslana
+                      </span>
+                    ) : (
+                      <span className="adm__meh">čeka</span>
                     )}
                   </td>
                   <td>{izvorPrikaz(p.referrer)}</td>

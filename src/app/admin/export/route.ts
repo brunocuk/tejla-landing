@@ -18,16 +18,16 @@ export async function GET() {
 
   const { data, error } = await db
     .from('waitlist_signups')
-    .select('email, created_at, consent_version, consent_given_at, consent_method, referrer, ip, user_agent')
+    .select('email, created_at, consent_version, consent_given_at, consent_method, invited_at, referrer, ip, user_agent')
     .order('created_at', { ascending: true });
 
   if (error) {
     return new NextResponse(`Čitanje nije uspjelo: ${error.message}`, { status: 500 });
   }
 
-  const zaglavlje = ['email', 'prijava', 'privola_verzija', 'privola_vrijeme', 'privola_nacin', 'izvor', 'ip', 'preglednik'];
+  const zaglavlje = ['email', 'prijava', 'privola_verzija', 'privola_vrijeme', 'privola_nacin', 'pozivnica_poslana', 'izvor', 'ip', 'preglednik'];
   const redovi = (data ?? []).map((r) =>
-    [r.email, r.created_at, r.consent_version, r.consent_given_at, r.consent_method, r.referrer, r.ip, r.user_agent]
+    [r.email, r.created_at, r.consent_version, r.consent_given_at, r.consent_method, r.invited_at, r.referrer, r.ip, r.user_agent]
       .map(csvPolje)
       .join(',')
   );
