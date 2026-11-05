@@ -225,10 +225,19 @@ const INVITE_LINES_BEFORE_CTA = [
 
 const INVITE_LINES_AFTER_CTA = [
   'Napravi svoj račun i isprobaj je s nečim što ti stvarno treba ovih dana. Možeš pozvati i ostale članove obitelji da zajedno koristite Tejlu.',
+  'Preporučujemo da Tejlu dodaš na početni zaslon mobitela kako bi ti uvijek bila pri ruci. Ako to ne napraviš odmah, nema problema – nakon registracije uvijek joj možeš pristupiti na app.tejla.app, bez ponovnog korištenja pozivnice.',
   'Samo mala napomena: Tejla je još u testnoj fazi. Zato nam puno znači ako javiš što ti se sviđa, što ti nedostaje ili ako nešto ne radi kako bi trebalo.',
   'Dovoljno je odgovoriti na ovaj mail. Čitamo svaki odgovor.',
   'Hvala ti što si tu od samog početka. 🤍',
 ];
+
+/* U HTML verziji spomen aplikacije postaje poveznica. */
+function linkifyAppUrl(line: string): string {
+  return line.replace(
+    'app.tejla.app',
+    `<a href="${tejlaConfig.appUrl}" style="color:#8D6B78;">app.tejla.app</a>`
+  );
+}
 
 function inviteText(inviteUrl: string, unsubscribeUrl: string): string {
   return [
@@ -251,7 +260,9 @@ function inviteHtml(inviteUrl: string, unsubscribeUrl: string): string {
   const paragraph = (line: string) =>
     `<p style="margin:0 0 18px 0; font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.65; color:#3A3A40;">${line}</p>`;
   const before = INVITE_LINES_BEFORE_CTA.map(paragraph).join('\n                        ');
-  const after = INVITE_LINES_AFTER_CTA.map(paragraph).join('\n                        ');
+  const after = INVITE_LINES_AFTER_CTA.map((line) => paragraph(linkifyAppUrl(line))).join(
+    '\n                        '
+  );
   return `<!DOCTYPE html>
 <html lang="hr">
 <head>
@@ -337,6 +348,137 @@ export async function sendInvite(input: {
     subject: INVITE_SUBJECT,
     html: inviteHtml(input.inviteUrl, unsubscribeUrl),
     text: inviteText(input.inviteUrl, unsubscribeUrl),
+    headers: { 'List-Unsubscribe': `<${unsubscribeUrl}>` },
+  });
+}
+
+/* ---------------------------------------------------------------------------
+ * "Da ti Tejla uvijek bude pri ruci" (treći mail, jednokratan): podsjetnik o
+ * dodavanju na početni zaslon za one koji su pozivnicu dobili PRIJE nego što
+ * je isti savjet ušao u tekst pozivnice (v. /api/pri-ruci). Budući pozvani
+ * ga ne dobivaju, njima je savjet već u pozivnici.
+ * Tekst: Matejina kopija, doslovno (5.11.2026.).
+ * ------------------------------------------------------------------------- */
+
+export const PRI_RUCI_SUBJECT = 'Da ti Tejla uvijek bude pri ruci';
+
+const PRI_RUCI_LINES_BEFORE_CTA = [
+  'Bok!',
+  'Samo jedna mala stvar da ti Tejla uvijek bude pri ruci. :)',
+  'Naša je preporuka da Tejlu dodaš na početni zaslon mobitela, baš kao i ostale aplikacije. Tako će ti uvijek biti nadohvat ruke, bez traženja poveznice po mailovima.',
+  'Ako Tejla još nije na tvom početnom zaslonu, nema problema! Možeš je otvoriti kad god poželiš putem ove poveznice:',
+];
+
+const PRI_RUCI_LINES_AFTER_CTA = [
+  'Za prijavu su ti potrebni samo e-mail adresa i lozinka koje koristiš za Tejlu.',
+  'Samo pripazi na jednu stvar: pozivnica iz prethodnog maila služi za prvu registraciju. Nakon toga Tejli uvijek pristupaš putem poveznice iz ovog maila ili izravno s početnog zaslona mobitela.',
+  'Ako još nemaš račun, otvori prethodni mail s pozivnicom i tamo možeš započeti registraciju.',
+  'A ako bilo gdje zapne, slobodno odgovori na ovaj mail. Tu smo. 🤍',
+  'Hvala ti što si među prvima u isprobavanju Tejle!',
+];
+
+function priRuciText(unsubscribeUrl: string): string {
+  return [
+    ...PRI_RUCI_LINES_BEFORE_CTA,
+    `Otvori Tejlu: ${tejlaConfig.appUrl}`,
+    ...PRI_RUCI_LINES_AFTER_CTA,
+    '',
+    'Tejla pamti. Ti živiš.',
+    '',
+    'tejla.',
+    '',
+    'Ovaj mail stiže ti jer je s tvoje e-mail adrese poslana prijava za rani pristup na tejla.app.',
+    `Ako se nisi prijavio/la ili više ne želiš primati obavijesti o ranom pristupu, ukloni se s liste: ${unsubscribeUrl}`,
+  ].join('\n\n');
+}
+
+function priRuciHtml(unsubscribeUrl: string): string {
+  const year = new Date().getFullYear();
+  const paragraph = (line: string) =>
+    `<p style="margin:0 0 18px 0; font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.65; color:#3A3A40;">${line}</p>`;
+  const before = PRI_RUCI_LINES_BEFORE_CTA.map(paragraph).join('\n                        ');
+  const after = PRI_RUCI_LINES_AFTER_CTA.map(paragraph).join('\n                        ');
+  return `<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tejla</title>
+</head>
+<body style="margin:0; padding:0; background:#F6F1EC;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F1EC; padding:48px 16px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                   style="max-width:520px; background:#FFFDFA; border:1px solid #E7E1D8; border-radius:20px;">
+                <tr>
+                    <td style="padding:44px 40px 8px 40px;" align="center">
+                        <span style="font-family:Georgia,'Times New Roman',serif; font-size:44px; color:#1F1F23; line-height:1;">t</span><span style="font-family:Georgia,serif; font-size:26px; color:#8D6B78;">&#9679;</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:32px 40px 0 40px;">
+                        ${before}
+                        <table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0 24px 0;">
+                            <tr>
+                                <td style="border-radius:999px; background:#8D6B78;">
+                                    <a href="${tejlaConfig.appUrl}"
+                                       style="display:inline-block; padding:14px 36px; font-family:Helvetica,Arial,sans-serif; font-size:16px; font-weight:bold; color:#F6F1EC; text-decoration:none; border-radius:999px;">
+                                        Otvori Tejlu
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                        <p style="margin:0 0 24px 0; font-family:Helvetica,Arial,sans-serif; font-size:13px; line-height:1.6; color:#8A8A90;">
+                            Ako gumb ne radi, otvori ovu poveznicu:<br>
+                            <a href="${tejlaConfig.appUrl}" style="color:#8D6B78; word-break:break-all;">${tejlaConfig.appUrl}</a>
+                        </p>
+                        ${after}
+                        <p style="margin:0 0 18px 0; font-family:Georgia,'Times New Roman',serif; font-size:17px; line-height:1.65; color:#8D6B78;">
+                            Tejla pamti. Ti živiš.
+                        </p>
+                        <p style="margin:0; font-family:Georgia,'Times New Roman',serif; font-size:22px; line-height:1; color:#1F1F23;">
+                            tejla<span style="color:#8D6B78;">.</span>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:32px 40px 0 40px;">
+                        <div style="height:1px; background:#E7E1D8; line-height:1px; font-size:0;">&nbsp;</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:24px 40px 40px 40px;">
+                        <p style="margin:0; font-family:Helvetica,Arial,sans-serif; font-size:13px; line-height:1.6; color:#8A8A90;">
+                            Ovaj mail stiže ti jer je s tvoje e-mail adrese poslana prijava za rani pristup na
+                            <a href="${tejlaConfig.url}" style="color:#8D6B78; text-decoration:none;">tejla.app</a>.
+                            Ako se nisi prijavio/la ili više ne želiš primati obavijesti o ranom pristupu,
+                            <a href="${unsubscribeUrl}" style="color:#8D6B78;">ukloni se s liste</a>.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+            <p style="margin:22px 0 0 0; font-family:Helvetica,Arial,sans-serif; font-size:12px; color:#A9A39B;">
+                &copy; ${year} Tejla
+            </p>
+        </td>
+    </tr>
+</table>
+</body>
+</html>`;
+}
+
+/** Jednokratni podsjetnik; unsubscribe kroz postojeću /odjava rutu. */
+export async function sendPriRuci(input: {
+  email: string;
+  unsubscribeToken: string;
+}): Promise<void> {
+  const unsubscribeUrl = `${tejlaConfig.url}/odjava/${input.unsubscribeToken}`;
+  await deliver({
+    to: input.email,
+    subject: PRI_RUCI_SUBJECT,
+    html: priRuciHtml(unsubscribeUrl),
+    text: priRuciText(unsubscribeUrl),
     headers: { 'List-Unsubscribe': `<${unsubscribeUrl}>` },
   });
 }
