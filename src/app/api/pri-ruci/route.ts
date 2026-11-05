@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  let body: { send?: boolean; testTo?: string; invitedBefore?: string } = {};
+  let body: { send?: boolean; testTo?: string; invitedBefore?: string; only?: string[] } = {};
   try {
     const raw = await request.text();
     if (raw) body = JSON.parse(raw);
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     ? new Date(beforeMs).toISOString()
     : new Date().toISOString();
 
-  const { data: eligible, error } = await db
+  const { data: rows, error } = await db
     .from('waitlist_signups')
     .select('id, email, token, invited_at')
     .not('invited_at', 'is', null)
@@ -87,18 +87,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Čitanje liste nije uspjelo.' }, { status: 500 });
   }
 
+  /* only: ciljani ponovni krug za adrese koje su u prošlom pozivu pale. */
+  const onlySet = new Set((body.only ?? []).map((e) => e.trim().toLowerCase()));
+  const eligible = (rows ?? []).filter(
+    (s) => onlySet.size === 0 || onlySet.has(s.email.toLowerCase())
+  );
+
   if (!body.send) {
     return NextResponse.json({
       dryRun: true,
       invitedBefore: before,
-      eligible: (eligible ?? []).map((s) => ({ email: s.email, invited_at: s.invited_at })),
+      eligible: eligible.map((s) => ({ email: s.email, invited_at: s.invited_at })),
     });
   }
 
   const sent: string[] = [];
   const failed: string[] = [];
 
-  for (const signup of eligible ?? []) {
+  for (const signup of eligible) {
     try {
       await sendPriRuci({ email: signup.email, unsubscribeToken: signup.token });
       sent.push(signup.email);
@@ -106,6 +112,8 @@ export async function POST(request: NextRequest) {
       console.error('[pri-ruci] SEND_FAILED', signup.email, mailError);
       failed.push(signup.email);
     }
+    /* Resend dopušta 2 zahtjeva u sekundi: bez pauze rep kruga pada na 429. */
+    await new Promise((resolve) => setTimeout(resolve, 600));
   }
 
   return NextResponse.json({ sent: sent.length, failed, emails: sent });
